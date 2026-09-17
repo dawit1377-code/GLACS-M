@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales & Marketing Hub</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        h1, h2, h3 { margin: 0; color: var(--primary); }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #e2e8f0;
+            color: var(--text);
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .tab-content.active { display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label { font-size: 0.85rem; font-weight: 600; color: var(--primary); }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        button.btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        th { background-color: #f1f5f9; color: var(--primary); }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Printable Report Styles */
+        #report-view {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .report-section { margin-bottom: 30px; }
+        .report-section h3 { border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 10px; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .nav-tabs, header, .no-print { display: none !important; }
+            .tab-content { box-shadow: none; padding: 0; }
+            #report { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Sales & Marketing Management</h1>
+            <small>Data Logging & Executive Reporting Tool</small>
+        </div>
+        <button class="tab-btn no-print" onclick="window.print()" style="background:#0f172a; color:white;">🖨️ Print / Export PDF Report</button>
+    </header>
+
+    <!-- Navigation -->
+    <div class="nav-tabs no-print">
+        <button class="tab-btn active" onclick="switchTab('sales')">💰 Sales & Feedback</button>
+        <button class="tab-btn" onclick="switchTab('tenders')">📜 Tenders & CPOs</button>
+        <button class="tab-btn" onclick="switchTab('marketing')">📲 Marketing & Agreements</button>
+        <button class="tab-btn" onclick="switchTab('report')" style="background-color: #3b82f6; color: white;">📊 Executive Report</button>
+    </div>
+
+    <!-- 1. Daily Sales & Feedback Tab -->
+    <div id="sales" class="tab-content active">
+        <h2>Daily Sales & Customer Feedback Entry</h2>
+        <br>
+        <form id="salesForm" onsubmit="addData('sales', event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="salesDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Cash Sales ($)</label>
+                    <input type="number" step="0.01" id="cashSales" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Credit Sales ($)</label>
+                    <input type="number" step="0.01" id="creditSales" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Key Customer Feedback</label>
+                    <input type="text" id="custFeedback" placeholder="Feedback notes..." required>
+                </div>
+            </div>
+            <button type="submit" class="btn-add">Save Entry</button>
+        </form>
+
+        <table id="salesTable">
+            <thead>
+                <tr>
+                    <th>Date</th><th>Cash Sales</th><th>Credit Sales</th><th>Total Sales</th><th>Customer Feedback</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 2. Tenders & CPO List Tab -->
+    <div id="tenders" class="tab-content">
+        <h2>Tender Participations & CPO Tracker</h2>
+        <br>
+        <form id="tenderForm" onsubmit="addData('tenders', event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Organization / Client</label>
+                    <input type="text" id="tenderOrg" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="tenderType">
+                        <option value="Tender">Tender</option>
+                        <option value="CPO">CPO (Cash Payment Order)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Value ($)</label>
+                    <input type="number" step="0.01" id="tenderValue" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="tenderStatus">
+                        <option value="Submitted">Submitted / Pending</option>
+                        <option value="Won">Won / Active</option>
+                        <option value="Lost">Lost</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn-add">Save Entry</button>
+        </form>
+
+        <table id="tendersTable">
+            <thead>
+                <tr>
+                    <th>Organization</th><th>Type</th><th>Value</th><th>Status</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 3. Social Media & Agreements Tab -->
+    <div id="marketing" class="tab-content">
+        <h2>Social Media & Client Agreements Tracker</h2>
+        <br>
+        <h3>1. Social Media Metrics Log</h3>
+        <form id="marketingForm" onsubmit="addData('marketing', event)" style="margin-bottom: 25px;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="mktPlatform">
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Twitter/X">Twitter/X</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Engagement Count (Likes/Shares/Comments)</label>
+                    <input type="number" id="mktEngagement" required>
+                </div>
+                <div class="form-group">
+                    <label>New Leads Generated</label>
+                    <input type="number" id="mktLeads" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-add">Save Metrics</button>
+        </form>
+
+        <h3>2. Organization Agreements</h3>
+        <form id="agreementForm" onsubmit="addData('agreements', event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Organization Name</label>
+                    <input type="text" id="agreedOrg" required>
+                </div>
+                <div class="form-group">
+                    <label>Agreement Status</label>
+                    <select id="agreedStatus">
+                        <option value="Active Agreement">Active Agreement</option>
+                        <option value="In Progress / Negotiating">In Progress / Negotiating</option>
+                        <option value="Pending Renewal">Pending Renewal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contract Value / Details</label>
+                    <input type="text" id="agreedDetails" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-add">Save Agreement</button>
+        </form>
+
+        <table id="agreementsTable">
+            <thead>
+                <tr>
+                    <th>Organization</th><th>Status</th><th>Details</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 4. Executive Report View -->
+    <div id="report" class="tab-content">
+        <div id="report-view">
+            <div class="report-header">
+                <h2>SALES & MARKETING EXECUTIVE PERFORMANCE REPORT</h2>
+                <p><small>Generated for Senior Leadership | Date: <span id="report-date"></span></small></p>
+            </div>
+
+            <div class="report-section">
+                <h3>1. Executive Financial Summary</h3>
+                <p><strong>Total Cash Sales Logged:</strong> $<span id="rep-cash">0.00</span></p>
+                <p><strong>Total Credit Sales Logged:</strong> $<span id="rep-credit">0.00</span></p>
+                <p><strong>Combined Overall Revenue:</strong> $<span id="rep-total">0.00</span></p>
+            </div>
+
+            <div class="report-section">
+                <h3>2. Tenders & CPO Pipeline Summary</h3>
+                <div id="rep-tenders"></div>
+            </div>
+
+            <div class="report-section">
+                <h3>3. Key Customer Feedback Highlights</h3>
+                <ul id="rep-feedback"></ul>
+            </div>
+
+            <div class="report-section">
+                <h3>4. Active & In-Process Organizational Agreements</h3>
+                <div id="rep-agreements"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data Storage Structure
+    let appData = JSON.parse(localStorage.getItem('sm_hub_data')) || {
+        sales: [],
+        tenders: [],
+        marketing: [],
+        agreements: []
+    };
+
+    function saveData() {
+        localStorage.setItem('sm_hub_data', JSON.stringify(appData));
+        renderAll();
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        if(event.target.classList.contains('tab-btn')) {
+            event.target.classList.add('active');
+        }
+
+        if (tabId === 'report') generateReport();
+    }
+
+    function addData(type, e) {
+        e.preventDefault();
+
+        if (type === 'sales') {
+            const cash = parseFloat(document.getElementById('cashSales').value);
+            const credit = parseFloat(document.getElementById('creditSales').value);
+            appData.sales.push({
+                date: document.getElementById('salesDate').value,
+                cash: cash,
+                credit: credit,
+                total: cash + credit,
+                feedback: document.getElementById('custFeedback').value
+            });
+            document.getElementById('salesForm').reset();
+        } 
+        else if (type === 'tenders') {
+            appData.tenders.push({
+                org: document.getElementById('tenderOrg').value,
+                type: document.getElementById('tenderType').value,
+                value: parseFloat(document.getElementById('tenderValue').value),
+                status: document.getElementById('tenderStatus').value
+            });
+            document.getElementById('tenderForm').reset();
+        }
+        else if (type === 'marketing') {
+            appData.marketing.push({
+                platform: document.getElementById('mktPlatform').value,
+                engagement: document.getElementById('mktEngagement').value,
+                leads: document.getElementById('mktLeads').value
+            });
+            document.getElementById('marketingForm').reset();
+        }
+        else if (type === 'agreements') {
+            appData.agreements.push({
+                org: document.getElementById('agreedOrg').value,
+                status: document.getElementById('agreedStatus').value,
+                details: document.getElementById('agreedDetails').value
+            });
+            document.getElementById('agreementForm').reset();
+        }
+
+        saveData();
+    }
+
+    function deleteItem(type, index) {
+        appData[type].splice(index, 1);
+        saveData();
+    }
+
+    function renderAll() {
+        // Render Sales
+        const salesTB = document.querySelector('#salesTable tbody');
+        salesTB.innerHTML = appData.sales.map((item, i) => `
+            <tr>
+                <td>${item.date}</td>
+                <td>$${item.cash.toFixed(2)}</td>
+                <td>$${item.credit.toFixed(2)}</td>
+                <td><strong>$${item.total.toFixed(2)}</strong></td>
+                <td>${item.feedback}</td>
+                <td><button class="btn-delete" onclick="deleteItem('sales', ${i})">X</button></td>
+            </tr>
+        `).join('');
+
+        // Render Tenders
+        const tendersTB = document.querySelector('#tendersTable tbody');
+        tendersTB.innerHTML = appData.tenders.map((item, i) => `
+            <tr>
+                <td>${item.org}</td>
+                <td>${item.type}</td>
+                <td>$${item.value.toFixed(2)}</td>
+                <td>${item.status}</td>
+                <td><button class="btn-delete" onclick="deleteItem('tenders', ${i})">X</button></td>
+            </tr>
+        `).join('');
+
+        // Render Agreements
+        const agreementsTB = document.querySelector('#agreementsTable tbody');
+        agreementsTB.innerHTML = appData.agreements.map((item, i) => `
+            <tr>
+                <td>${item.org}</td>
+                <td>${item.status}</td>
+                <td>${item.details}</td>
+                <td><button class="btn-delete" onclick="deleteItem('agreements', ${i})">X</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function generateReport() {
+        document.getElementById('report-date').innerText = new Date().toLocaleDateString();
+
+        // Financials Calculation
+        const totalCash = appData.sales.reduce((acc, curr) => acc + curr.cash, 0);
+        const totalCredit = appData.sales.reduce((acc, curr) => acc + curr.credit, 0);
+        
+        document.getElementById('rep-cash').innerText = totalCash.toFixed(2);
+        document.getElementById('rep-credit').innerText = totalCredit.toFixed(2);
+        document.getElementById('rep-total').innerText = (totalCash + totalCredit).toFixed(2);
+
+        // Feedback list
+        const feedbackList = document.getElementById('rep-feedback');
+        feedbackList.innerHTML = appData.sales.length ? 
+            appData.sales.map(s => `<li><strong>${s.date}:</strong> ${s.feedback}</li>`).join('') :
+            "<li>No customer feedback recorded.</li>";
+
+        // Tenders List
+        const tenderDiv = document.getElementById('rep-tenders');
+        tenderDiv.innerHTML = appData.tenders.length ? `
+            <table>
+                <tr><th>Organization</th><th>Type</th><th>Value</th><th>Status</th></tr>
+                ${appData.tenders.map(t => `<tr><td>${t.org}</td><td>${t.type}</td><td>$${t.value.toFixed(2)}</td><td>${t.status}</td></tr>`).join('')}
+            </table>` : "<p>No tenders or CPOs currently tracked.</p>";
+
+        // Agreements List
+        const agreeDiv = document.getElementById('rep-agreements');
+        agreeDiv.innerHTML = appData.agreements.length ? `
+            <table>
+                <tr><th>Organization</th><th>Status</th><th>Details</th></tr>
+                ${appData.agreements.map(a => `<tr><td>${a.org}</td><td>${a.status}</td><td>${a.details}</td></tr>`).join('')}
+            </table>` : "<p>No active/pending organization agreements logged.</p>";
+    }
+
+    // Initial Run
+    renderAll();
+</script>
+
+</body>
+</html>
