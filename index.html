@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLAC - Sales & Marketing Operations System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glacGreen: '#0B7143',
+                        glacDark: '#0A2A5C',
+                        glacSlate: '#34424F',
+                        glacGold: '#FEC20C',
+                        glacRed: '#990000'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- TOP HEADER / BRANDING -->
+    <header class="bg-glacDark text-white border-b-4 border-glacGold shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <!-- Replace 'logo.png' with your relative image path on GitHub -->
+                <img src="logo.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x60/0B7143/FFFFFF?text=GLAC'" alt="GLAC Logo" class="w-14 h-14 rounded-lg bg-white p-1 object-contain border border-glacGold">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide text-white">Greenlight Automotive Center (GLAC)</h1>
+                    <div class="flex items-center gap-3 text-xs text-slate-300 mt-0.5">
+                        <span class="italic">"A Better Way To Go"</span>
+                        <span class="text-glacGold">|</span>
+                        <span class="font-semibold text-glacGold">የመኪናዎ የደህንነት አጋር</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportToCSV()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+                </button>
+                <button onclick="switchTab('report')" class="flex items-center gap-2 bg-glacGold hover:bg-amber-400 text-glacDark font-bold px-4 py-2 rounded-lg text-sm transition shadow-sm">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Executive Report
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- NAVIGATION TABS -->
+        <nav class="flex border-b border-slate-300 mb-6 bg-white rounded-t-lg px-2 pt-2 shadow-sm no-print">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-glacGreen text-glacGreen flex items-center gap-2">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview & Sales
+            </button>
+            <button onclick="switchTab('tenders')" id="tab-tenders" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-600 hover:text-glacGreen flex items-center gap-2">
+                <i data-lucide="file-check-2" class="w-4 h-4"></i> Tenders & CPOs
+            </button>
+            <button onclick="switchTab('engagements')" id="tab-engagements" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-600 hover:text-glacGreen flex items-center gap-2">
+                <i data-lucide="building-2" class="w-4 h-4"></i> Agreements & Media
+            </button>
+            <button onclick="switchTab('report')" id="tab-report" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-600 hover:text-glacGreen flex items-center gap-2">
+                <i data-lucide="printer" class="w-4 h-4"></i> Senior Leadership Report
+            </button>
+        </nav>
+
+        <!-- ================= TAB 1: DASHBOARD & SALES ================= -->
+        <section id="view-dashboard" class="tab-view space-y-6">
+            <!-- KPI CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-glacGreen">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Cash Sales</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-cash">0.00 ETB</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-glacDark">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Credit Sales</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-credit">0.00 ETB</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-glacGold">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Active Tenders / CPOs</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-tenders">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-slate-600">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Active Agreements</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-agreements">0</h3>
+                </div>
+            </div>
+
+            <!-- SALES DATA ENTRY FORM -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="text-lg font-bold text-glacDark mb-4 flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-glacGreen"></i> Daily Sales & Customer Feedback Entry
+                </h2>
+                <form id="salesForm" onsubmit="addSalesRecord(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Date</label>
+                        <input type="date" id="saleDate" required class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Cash Sales (ETB)</label>
+                        <input type="number" step="0.01" id="saleCash" placeholder="0.00" required class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Credit Sales (ETB)</label>
+                        <input type="number" step="0.01" id="saleCredit" placeholder="0.00" required class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Customer Feedback</label>
+                        <input type="text" id="saleFeedback" placeholder="እባክዎ አስተያየትዎን ይስጡን..." class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-glacGreen hover:bg-emerald-800 text-white font-semibold py-2 px-4 rounded-lg text-sm transition shadow-sm">
+                            Save Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- SALES TABLE & CHART -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-md font-bold text-glacDark mb-3">Recent Sales Transactions</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Cash (ETB)</th>
+                                    <th class="p-3">Credit (ETB)</th>
+                                    <th class="p-3">Total (ETB)</th>
+                                    <th class="p-3">Feedback</th>
+                                    <th class="p-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-md font-bold text-glacDark mb-3">Revenue Breakdown</h3>
+                    <div class="relative h-60">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: TENDERS & CPOs ================= -->
+        <section id="view-tenders" class="tab-view space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="text-lg font-bold text-glacDark mb-4 flex items-center gap-2">
+                    <i data-lucide="file-spreadsheets" class="w-5 h-5 text-glacGreen"></i> Tender Participation & CPO Tracking
+                </h2>
+                <form id="tenderForm" onsubmit="addTenderRecord(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Organization Name</label>
+                        <input type="text" id="tOrg" required placeholder="e.g. World Vision, SNV" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+                        <select id="tType" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                            <option value="Tender Submission">Tender Submission</option>
+                            <option value="Bid Security CPO">Bid Security CPO</option>
+                            <option value="Performance Bond">Performance Bond</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Amount (ETB)</label>
+                        <input type="number" step="0.01" id="tValue" placeholder="0.00" required class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                        <select id="tStatus" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                            <option value="Under Review">Under Review</option>
+                            <option value="Awarded / Won">Awarded / Won</option>
+                            <option value="CPO Refund Requested">CPO Refund Requested</option>
+                            <option value="Unsuccessful">Unsuccessful</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-glacGreen hover:bg-emerald-800 text-white font-semibold py-2 px-4 rounded-lg text-sm transition shadow-sm">
+                            Add Tender
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-md font-bold text-glacDark mb-3">Tender & CPO Registry</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Organization</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Value (ETB)</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenderTableBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: AGREEMENTS & MEDIA ================= -->
+        <section id="view-engagements" class="tab-view space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Corporate Agreements -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h2 class="text-lg font-bold text-glacDark flex items-center gap-2">
+                        <i data-lucide="handshake" class="w-5 h-5 text-glacGreen"></i> Active & Pipeline Agreements
+                    </h2>
+                    <form id="agreementForm" onsubmit="addAgreementRecord(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Organization / Fleet Client</label>
+                            <input type="text" id="aOrg" required placeholder="Organization Name" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Agreement Stage</label>
+                            <select id="aStatus" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                                <option value="Active Agreement">Active Agreement</option>
+                                <option value="Contract Draft / Negotiation">Contract Draft / Negotiation</option>
+                                <option value="Pending Renewal">Pending Renewal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Scope / Contract Details</label>
+                            <input type="text" id="aDetails" required placeholder="Fleet maintenance, service terms..." class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-glacGreen hover:bg-emerald-800 text-white font-semibold py-2 rounded-lg text-sm transition shadow-sm">
+                            Save Agreement
+                        </button>
+                    </form>
+
+                    <div class="overflow-x-auto mt-4">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b">
+                                <tr>
+                                    <th class="p-2">Organization</th>
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2">Details</th>
+                                    <th class="p-2 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agreementTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Social Media Metrics -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h2 class="text-lg font-bold text-glacDark flex items-center gap-2">
+                        <i data-lucide="share-2" class="w-5 h-5 text-glacGreen"></i> Digital Media Engagements
+                    </h2>
+                    <form id="mediaForm" onsubmit="addMediaRecord(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Channel / Platform</label>
+                            <select id="mPlatform" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                                <option value="Telegram Channel (@GREENLIGHTAUTO)">Telegram (@GREENLIGHTAUTO)</option>
+                                <option value="Facebook Business">Facebook Business</option>
+                                <option value="TikTok Campaigns">TikTok Campaigns</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Total Reach / Engagements</label>
+                            <input type="number" id="mEngage" required placeholder="0" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Inquiries / Leads Received</label>
+                            <input type="number" id="mLeads" required placeholder="0" class="w-full border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-glacGreen outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-glacDark hover:bg-slate-800 text-white font-semibold py-2 rounded-lg text-sm transition shadow-sm">
+                            Log Engagement Data
+                        </button>
+                    </form>
+
+                    <div class="overflow-x-auto mt-4">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-slate-50 text-slate-600 text-xs uppercase border-b">
+                                <tr>
+                                    <th class="p-2">Platform</th>
+                                    <th class="p-2">Engagements</th>
+                                    <th class="p-2">Leads</th>
+                                    <th class="p-2 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mediaTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: EXECUTIVE REPORT ================= -->
+        <section id="view-report" class="tab-view hidden">
+            <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-lg max-w-4xl mx-auto">
+                <div class="flex justify-between items-center border-b-2 border-glacDark pb-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-glacDark uppercase tracking-wider">Greenlight Automotive Center</h2>
+                        <p class="text-sm text-glacGreen font-semibold">Sales & Marketing Performance Report</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500">Report Generated:</p>
+                        <p class="text-sm font-bold text-slate-800" id="reportDate">--</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Revenue Summary -->
+                    <div>
+                        <h3 class="text-md font-bold text-glacDark border-b pb-1 mb-3">1. Financial Revenue Summary</h3>
+                        <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-lg text-center">
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Cash Revenue</p>
+                                <p class="text-lg font-bold text-glacGreen" id="rep-cash">0.00 ETB</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Credit Revenue</p>
+                                <p class="text-lg font-bold text-glacDark" id="rep-credit">0.00 ETB</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Overall Revenue Total</p>
+                                <p class="text-lg font-bold text-amber-600" id="rep-total">0.00 ETB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tender Status -->
+                    <div>
+                        <h3 class="text-md font-bold text-glacDark border-b pb-1 mb-3">2. Tenders & CPO Guarantee Status</h3>
+                        <div id="rep-tenders-list" class="text-sm"></div>
+                    </div>
+
+                    <!-- Customer Feedback -->
+                    <div>
+                        <h3 class="text-md font-bold text-glacDark border-b pb-1 mb-3">3. Customer Feedback Highlights</h3>
+                        <ul id="rep-feedback-list" class="list-disc pl-5 text-sm text-slate-700 space-y-1"></ul>
+                    </div>
+
+                    <!-- Corporate Agreements -->
+                    <div>
+                        <h3 class="text-md font-bold text-glacDark border-b pb-1 mb-3">4. Corporate Agreements & Pipeline</h3>
+                        <div id="rep-agreements-list" class="text-sm"></div>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-6 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+                    <p>GLAC Operations System - Confidential Internal Executive Summary</p>
+                    <button onclick="window.print()" class="no-print bg-glacDark text-white px-4 py-2 rounded font-semibold text-xs">Print Report</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // State Management with LocalStorage
+        let store = JSON.parse(localStorage.getItem('glac_sm_db')) || {
+            sales: [],
+            tenders: [],
+            agreements: [],
+            media: []
+        };
+
+        let chartInstance = null;
+
+        function saveStore() {
+            localStorage.setItem('glac_sm_db', JSON.stringify(store));
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-glacGreen', 'text-glacGreen');
+                el.classList.add('border-transparent', 'text-slate-600');
+            });
+
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const activeTabBtn = document.getElementById('tab-' + tabId);
+            if(activeTabBtn) {
+                activeTabBtn.classList.remove('border-transparent', 'text-slate-600');
+                activeTabBtn.classList.add('border-glacGreen', 'text-glacGreen');
+            }
+
+            if(tabId === 'report') renderReport();
+        }
+
+        // Add Handlers
+        function addSalesRecord(e) {
+            e.preventDefault();
+            const cash = parseFloat(document.getElementById('saleCash').value) || 0;
+            const credit = parseFloat(document.getElementById('saleCredit').value) || 0;
+            store.sales.push({
+                id: Date.now(),
+                date: document.getElementById('saleDate').value,
+                cash: cash,
+                credit: credit,
+                total: cash + credit,
+                feedback: document.getElementById('saleFeedback').value || 'እባክዎ አስተያየትዎን ይስጡን'
+            });
+            document.getElementById('salesForm').reset();
+            saveStore();
+        }
+
+        function addTenderRecord(e) {
+            e.preventDefault();
+            store.tenders.push({
+                id: Date.now(),
+                org: document.getElementById('tOrg').value,
+                type: document.getElementById('tType').value,
+                value: parseFloat(document.getElementById('tValue').value) || 0,
+                status: document.getElementById('tStatus').value
+            });
+            document.getElementById('tenderForm').reset();
+            saveStore();
+        }
+
+        function addAgreementRecord(e) {
+            e.preventDefault();
+            store.agreements.push({
+                id: Date.now(),
+                org: document.getElementById('aOrg').value,
+                status: document.getElementById('aStatus').value,
+                details: document.getElementById('aDetails').value
+            });
+            document.getElementById('agreementForm').reset();
+            saveStore();
+        }
+
+        function addMediaRecord(e) {
+            e.preventDefault();
+            store.media.push({
+                id: Date.now(),
+                platform: document.getElementById('mPlatform').value,
+                engagement: parseInt(document.getElementById('mEngage').value) || 0,
+                leads: parseInt(document.getElementById('mLeads').value) || 0
+            });
+            document.getElementById('mediaForm').reset();
+            saveStore();
+        }
+
+        function deleteItem(type, id) {
+            store[type] = store[type].filter(item => item.id !== id);
+            saveStore();
+        }
+
+        // Render Data Tables & KPIs
+        function renderAll() {
+            // Render Sales
+            const salesBody = document.getElementById('salesTableBody');
+            let totalCash = 0, totalCredit = 0;
+            salesBody.innerHTML = store.sales.map(s => {
+                totalCash += s.cash;
+                totalCredit += s.credit;
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-3 font-medium">${s.date}</td>
+                    <td class="p-3 text-glacGreen font-semibold">${s.cash.toLocaleString()} ETB</td>
+                    <td class="p-3 text-glacDark font-semibold">${s.credit.toLocaleString()} ETB</td>
+                    <td class="p-3 font-bold">${s.total.toLocaleString()} ETB</td>
+                    <td class="p-3 text-slate-500 italic text-xs">${s.feedback}</td>
+                    <td class="p-3 text-center"><button onclick="deleteItem('sales', ${s.id})" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('kpi-cash').innerText = totalCash.toLocaleString() + ' ETB';
+            document.getElementById('kpi-credit').innerText = totalCredit.toLocaleString() + ' ETB';
+
+            // Render Tenders
+            const tenderBody = document.getElementById('tenderTableBody');
+            document.getElementById('kpi-tenders').innerText = store.tenders.length;
+            tenderBody.innerHTML = store.tenders.map(t => `<tr class="hover:bg-slate-50">
+                <td class="p-3 font-medium">${t.org}</td>
+                <td class="p-3">${t.type}</td>
+                <td class="p-3 font-semibold">${t.value.toLocaleString()} ETB</td>
+                <td class="p-3"><span class="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 font-bold">${t.status}</span></td>
+                <td class="p-3 text-center"><button onclick="deleteItem('tenders', ${t.id})" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
+            </tr>`).join('');
+
+            // Render Agreements
+            const agreementBody = document.getElementById('agreementTableBody');
+            document.getElementById('kpi-agreements').innerText = store.agreements.length;
+            agreementBody.innerHTML = store.agreements.map(a => `<tr class="hover:bg-slate-50">
+                <td class="p-2 font-medium">${a.org}</td>
+                <td class="p-2"><span class="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-800 font-semibold">${a.status}</span></td>
+                <td class="p-2 text-xs text-slate-600">${a.details}</td>
+                <td class="p-2 text-center"><button onclick="deleteItem('agreements', ${a.id})" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
+            </tr>`).join('');
+
+            // Render Media
+            const mediaBody = document.getElementById('mediaTableBody');
+            mediaBody.innerHTML = store.media.map(m => `<tr class="hover:bg-slate-50">
+                <td class="p-2 font-medium">${m.platform}</td>
+                <td class="p-2">${m.engagement.toLocaleString()}</td>
+                <td class="p-2 font-semibold text-glacGreen">${m.leads.toLocaleString()}</td>
+                <td class="p-2 text-center"><button onclick="deleteItem('media', ${m.id})" class="text-red-500 hover:text-red-700 font-bold">✕</button></td>
+            </tr>`).join('');
+
+            renderChart(totalCash, totalCredit);
+        }
+
+        function renderChart(cash, credit) {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cash Sales', 'Credit Sales'],
+                    datasets: [{
+                        data: [cash, credit],
+                        backgroundColor: ['#0B7143', '#0A2A5C']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderReport() {
+            document.getElementById('reportDate').innerText = new Date().toLocaleDateString('en-GB');
+            const totalCash = store.sales.reduce((a, b) => a + b.cash, 0);
+            const totalCredit = store.sales.reduce((a, b) => a + b.credit, 0);
+
+            document.getElementById('rep-cash').innerText = totalCash.toLocaleString() + ' ETB';
+            document.getElementById('rep-credit').innerText = totalCredit.toLocaleString() + ' ETB';
+            document.getElementById('rep-total').innerText = (totalCash + totalCredit).toLocaleString() + ' ETB';
+
+            // Feedback
+            document.getElementById('rep-feedback-list').innerHTML = store.sales.length ? 
+                store.sales.map(s => `<li><strong>${s.date}:</strong> ${s.feedback}</li>`).join('') :
+                '<li>No customer feedback entries logged.</li>';
+
+            // Tenders
+            document.getElementById('rep-tenders-list').innerHTML = store.tenders.length ? 
+                `<ul class="divide-y">${store.tenders.map(t => `<li class="py-1"><strong>${t.org}</strong> - ${t.type} (${t.value.toLocaleString()} ETB) - <span class="italic text-xs">${t.status}</span></li>`).join('')}</ul>` :
+                '<p class="text-slate-500 italic">No tenders currently in pipeline.</p>';
+
+            // Agreements
+            document.getElementById('rep-agreements-list').innerHTML = store.agreements.length ? 
+                `<ul class="divide-y">${store.agreements.map(a => `<li class="py-1"><strong>${a.org}</strong>: ${a.details} (<em>${a.status}</em>)</li>`).join('')}</ul>` :
+                '<p class="text-slate-500 italic">No corporate agreements currently logged.</p>';
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Category,Field 1,Field 2,Field 3\n";
+            store.sales.forEach(s => { csvContent += `Sales,${s.date},Cash:${s.cash},Credit:${s.credit}\n`; });
+            store.tenders.forEach(t => { csvContent += `Tender,${t.org},${t.type},${t.value}\n`; });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "GLAC_Sales_Marketing_Report.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        // Initialize Lucide Icons and Data
+        window.onload = function() {
+            lucide.createIcons();
+            document.getElementById('saleDate').valueAsDate = new Date();
+            renderAll();
+        };
+    </script>
+</body>
+</html>
